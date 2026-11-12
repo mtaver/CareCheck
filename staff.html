@@ -5,6 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Facility portal | CareCheck</title>
   <link rel="stylesheet" href="./styles.css">
+  <script>
+    const recovery = new URLSearchParams(location.hash.slice(1));
+    if (recovery.get('type') === 'recovery' || recovery.get('error_code') === 'otp_expired') {
+      const resetPage = new URL('./reset.html', location.href);
+      resetPage.hash = location.hash;
+      location.replace(resetPage.href);
+    }
+  </script>
   <script type="module" src="./staff.js"></script>
 </head>
 <body>
@@ -17,6 +25,7 @@
         <label>Email<input name="email" type="email" autocomplete="email" required></label>
         <label>Password<input name="password" type="password" autocomplete="current-password" minlength="8" required></label>
         <div class="actions"><button value="signin">Sign in</button><button value="signup">Create account</button></div>
+        <a href="./reset.html">Forgot password?</a>
       </form>
       <div id="workspace" hidden>
         <button id="logout" type="button">Sign out</button>
