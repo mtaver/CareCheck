@@ -21,6 +21,19 @@ const customInput = update.elements.service_name;
 const customLabel = document.querySelector('#custom-service-label');
 const serviceSelect = document.querySelector('#service-choice');
 const medicineFields = document.querySelector('#medicine-fields');
+const medicineName = update.elements.medicine_name;
+const customMedicineName = update.elements.medicine_custom_name;
+const customMedicineLabel = document.querySelector('#other-medicine-label');
+
+function showCustomMedicine() {
+  const other = medicineName.value === 'other';
+  customMedicineLabel.hidden = !other;
+  customMedicineName.disabled = !other;
+  customMedicineName.required = other;
+  if (!other) customMedicineName.value = '';
+}
+
+medicineName.addEventListener('change', showCustomMedicine);
 const serviceChoiceLabel = serviceSelect.closest('label');
 const cutoffLabel = update.elements.arrival_cutoff.closest('label');
 const availabilitySelect = update.elements.availability;
@@ -63,6 +76,7 @@ function clearServiceDetails() {
   customInput.required = other;
   customInput.value = '';
   for (const input of medicineFields.querySelectorAll('input, select')) input.value = '';
+  showCustomMedicine();
   feeInput.value = '';
   update.elements.arrival_cutoff.value = '';
   update.elements.availability.value = 'available';
@@ -139,7 +153,8 @@ handle(update, async (values) => {
     throw new Error('Select one of your registered facilities first.');
   }
   const pharmacy = isPharmacy(selectedFacility());
-  const details = ['medicine_name', 'medicine_strength', 'medicine_form', 'medicine_pack']
+  const medicineNameKey = values.medicine_name === 'other' ? 'medicine_custom_name' : 'medicine_name';
+  const details = [medicineNameKey, 'medicine_strength', 'medicine_form', 'medicine_pack']
     .map((key) => (values[key] ?? '').trim().replace(/\s+/g, ' '));
   const name = pharmacy ? details.join(' · ')
     : serviceSelect.value === 'other' ? (values.service_name ?? '').trim() : serviceSelect.value;
