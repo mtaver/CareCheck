@@ -36,6 +36,11 @@ const naira = new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN
 const time = new Intl.DateTimeFormat('en-NG', { timeZone: 'Africa/Lagos', hour: 'numeric', minute: '2-digit' });
 let listings = [];
 const fares = new Map();
+const facilityType = document.createElement('select');
+const facilityTypeLabel = document.createElement('label');
+facilityTypeLabel.append('Facility type', facilityType);
+facilityType.append(new Option('All facility types', ''), new Option('Pharmacies', 'pharmacy'));
+form.insertBefore(facilityTypeLabel, form.querySelector('button'));
 const comparison = document.createElement('select');
 const comparisonLabel = document.createElement('label');
 comparisonLabel.append('Compare one service', comparison);
@@ -45,9 +50,18 @@ const comparisonStatus = document.createElement('p');
 comparisonStatus.hidden = true;
 cards.before(comparisonStatus);
 
+function matchesFacilityType(entry) {
+  return !facilityType.value || String(entry.kind ?? '').trim().toLowerCase() === facilityType.value;
+}
+
+function isMedicine(entry) {
+  return String(entry.kind ?? '').trim().toLowerCase() === 'pharmacy' &&
+    entry.service.split(' · ').length === 4;
+}
+
 function refreshComparison() {
   const selected = comparison.value;
-  const services = [...new Set(listings.filter((entry) => entry.confirmed_at && !/[,;\n]/.test(entry.service))
+  const services = [...new Set(listings.filter((entry) => matchesFacilityType(entry) && entry.confirmed_at && !/[,;\n]/.test(entry.service))
     .map((entry) => entry.service))].sort();
   comparison.replaceChildren(new Option(services.length ? 'Choose a service to compare' : 'No individually listed services yet', ''),
     ...services.map((service) => new Option(service, service)));
@@ -109,9 +123,10 @@ function displayConfirmation(card, facility) {
   const localDay = (date) => new Date(date.getTime() + 3600000).toISOString().slice(0, 10);
   const today = localDay(now);
   const cutoff = facility.cutoff && new Date(today + 'T' + facility.cutoff + '+01:00');
+  const medicine = isMedicine(facility);
   const current = confirmed <= now && localDay(confirmed) === today && (!cutoff || cutoff > now);
   card.querySelector('.badge').textContent = current
-    ? (facility.status === 'available' ? 'Confirmed today' : 'Unavailable today')
+    ? (facility.status === 'available' ? (medicine ? 'In stock today' : 'Confirmed today') : (medicine ? 'Out of stock today' : 'Unavailable today'))
     : 'Call to confirm';
   card.querySelector('.confirmed').textContent = 'Last confirmed ' + new Intl.DateTimeFormat('en-NG', {
     timeZone: 'Africa/Lagos', dateStyle: 'medium', timeStyle: 'short',
@@ -148,6 +163,7 @@ function renderFacilities() {
   const service = comparison.value;
   const words = query.value.trim().toLowerCase().split(/\s+/).filter(Boolean);
   const matches = [...directory, ...listings].filter((facility) => {
+    if (!matchesFacilityType(facility)) return false;
     const searchable = [facility.name, facility.community, facility.service, facility.searchTerms, facility.kind]
       .join(' ').toLowerCase();
     const matchesCommunity = community.selectedIndex === 0 || facility.community === community.value;
@@ -167,6 +183,7 @@ function renderFacilities() {
   if (!matches.length) {
     const message = document.createElement('p');
     message.textContent = service ? 'No listings for this service in the selected community.' :
+      facilityType.value ? 'No pharmacies match this search. Try a medicine name or another community.' :
       'No matching listings. Try “laboratory” or choose all listed communities.';
     cards.append(message);
     return;
@@ -191,6 +208,10 @@ function renderFacilities() {
     if (facility.source) source.href = facility.source;
     else source.remove();
     displayConfirmation(card, facility);
+    if (isMedicine(facility)) {
+      card.querySelector('.price').previousElementSibling.textContent = 'Price per listed pack';
+      card.querySelector('.cutoff').parentElement.hidden = true;
+    }
     if (service) addTripEstimate(card, facility);
     cards.append(card);
   }
@@ -209,6 +230,11 @@ comparison.addEventListener('change', () => {
   renderFacilities();
 });
 community.addEventListener('change', renderFacilities);
+facilityType.addEventListener('change', () => {
+  query.placeholder = facilityType.value ? 'Search for a medicine or pharmacy' : 'e.g. laboratory services';
+  refreshComparison();
+  renderFacilities();
+});
 window.addEventListener('online', () => {
   updateConnection();
   refreshListings();

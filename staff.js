@@ -20,13 +20,36 @@ const feeInput = update.elements.quote;
 const customInput = update.elements.service_name;
 const customLabel = document.querySelector('#custom-service-label');
 const serviceSelect = document.querySelector('#service-choice');
+const medicineFields = document.querySelector('#medicine-fields');
+const serviceChoiceLabel = serviceSelect.closest('label');
+const cutoffLabel = update.elements.arrival_cutoff.closest('label');
+const availabilitySelect = update.elements.availability;
+
+function selectedFacility() {
+  return facilities.find((row) => row.id === facilitySelect.value);
+}
+
+function isPharmacy(facility) {
+  return String(facility?.kind ?? '').trim().toLowerCase() === 'pharmacy';
+}
 
 function refreshServiceOptions() {
-  const facility = facilities.find((row) => row.id === facilitySelect.value);
+  const facility = selectedFacility();
   const kind = Object.keys(serviceOptions).find((key) =>
     key.toLowerCase() === String(facility?.kind ?? '').trim().toLowerCase());
   const names = kind ? serviceOptions[kind] : [...new Set(Object.values(serviceOptions).flat())];
-  serviceSelect.disabled = !facility;
+  const pharmacy = isPharmacy(facility);
+  medicineFields.hidden = !pharmacy;
+  medicineFields.disabled = !pharmacy;
+  serviceChoiceLabel.hidden = pharmacy;
+  serviceSelect.disabled = !facility || pharmacy;
+  cutoffLabel.hidden = pharmacy;
+  update.elements.arrival_cutoff.disabled = pharmacy;
+  update.querySelector('h2').textContent = pharmacy ? 'List a medicine' : 'Confirm a service';
+  feeInput.closest('label').firstChild.textContent = pharmacy ? 'Price for this pack (₦)' : 'Fee for this service (₦)';
+  availabilitySelect.closest('label').firstChild.textContent = pharmacy ? 'Stock status' : 'Availability';
+  availabilitySelect.options[0].textContent = pharmacy ? 'In stock' : 'Available';
+  availabilitySelect.options[1].textContent = pharmacy ? 'Out of stock' : 'Unavailable';
   serviceSelect.replaceChildren(new Option(facility ? 'Select one service' : 'Register a facility first', ''));
   if (facility) serviceSelect.append(...names.map((name) => new Option(name, name)), new Option('Other service', 'other'));
   serviceSelect.value = '';
@@ -39,6 +62,7 @@ function clearServiceDetails() {
   customInput.disabled = !other;
   customInput.required = other;
   customInput.value = '';
+  for (const input of medicineFields.querySelectorAll('input, select')) input.value = '';
   feeInput.value = '';
   update.elements.arrival_cutoff.value = '';
   update.elements.availability.value = 'available';
@@ -72,7 +96,7 @@ function handle(form, action, status = notice) {
     event.preventDefault();
     if (form.dataset.busy) return;
     form.dataset.busy = 'true';
-    if (form === update) status.textContent = 'Saving confirmation…';
+    if (form === update) status.textContent = 'Saving listing…';
     try {
       await action(Object.fromEntries(new FormData(form)), event.submitter);
     } catch (error) {
@@ -114,13 +138,20 @@ handle(update, async (values) => {
   if (!facilities.some((row) => row.id === values.facility)) {
     throw new Error('Select one of your registered facilities first.');
   }
-  const name = serviceSelect.value === 'other' ? (values.service_name ?? '').trim() : serviceSelect.value;
+  const pharmacy = isPharmacy(selectedFacility());
+  const details = ['medicine_name', 'medicine_strength', 'medicine_form', 'medicine_pack']
+    .map((key) => (values[key] ?? '').trim().replace(/\s+/g, ' '));
+  const name = pharmacy ? details.join(' · ')
+    : serviceSelect.value === 'other' ? (values.service_name ?? '').trim() : serviceSelect.value;
+  if (pharmacy && (details.some((part) => !part || /[,;·]/.test(part)) || name.length > 100)) {
+    throw new Error('Enter one medicine, its strength, form and pack size. Keep the combined name under 100 characters.');
+  }
   if (name.length < 2 || /[,;\n]/.test(name)) {
     throw new Error('Enter one service at a time, with its own fee.');
   }
   if (values.quote === '' || !Number.isInteger(Number(values.quote)) ||
       Number(values.quote) < 0 || Number(values.quote) > 100000000) {
-    throw new Error('Enter the fee for this service. Use 0 for a free service.');
+    throw new Error('Enter the price for this listing. Use 0 if it is free.');
   }
   const available = values.availability === 'available';
   await request('/rest/v1/rpc/confirm_service', {
@@ -130,11 +161,11 @@ handle(update, async (values) => {
       service_name: name,
       availability: values.availability,
       quote: Number(values.quote),
-      arrival_cutoff: available ? values.arrival_cutoff || null : null,
+      arrival_cutoff: available && !pharmacy ? values.arrival_cutoff || null : null,
     },
   });
   const pending = facilities.find((row) => row.id === values.facility)?.approved === false;
-  if (facilitySelect.value === values.facility && (serviceSelect.value === name ||
+  if (facilitySelect.value === values.facility && (pharmacy || serviceSelect.value === name ||
       (serviceSelect.value === 'other' && customInput.value.trim() === name))) {
     refreshServiceOptions();
   }

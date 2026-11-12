@@ -13,7 +13,7 @@
       location.replace(resetPage.href);
     }
   </script>
-  <script type="module" src="./staff.js?v=service-selector-1"></script>
+  <script type="module" src="./staff.js?v=pharmacy-stock-1"></script>
 </head>
 <body>
   <header class="bar"><div class="wrap"><a class="brand" href="./">Care<span>Check</span></a><div class="actions"><a href="./">Find nearby care</a><a href="./admin.html">Admin portal</a></div></div></header>
@@ -42,6 +42,13 @@
           <h2>Confirm a service</h2>
           <label>Facility<select name="facility" required></select></label>
           <label>Service<select id="service-choice" required disabled><option value="">Register a facility first</option></select></label>
+          <fieldset id="medicine-fields" hidden disabled style="grid-column:1 / -1; display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%, 12rem),1fr)); gap:.75rem">
+            <legend>Medicine and pack details</legend>
+            <label>Medicine name<input name="medicine_name" maxlength="45" required></label>
+            <label>Strength<input name="medicine_strength" maxlength="20" placeholder="e.g. 500 mg" required></label>
+            <label>Form<select name="medicine_form" required><option value="">Select form</option><option>Tablet</option><option>Capsule</option><option>Liquid</option><option>Cream</option><option>Ointment</option><option>Injection</option><option>Inhaler</option><option>Drops</option><option>Other</option></select></label>
+            <label>Pack size<input name="medicine_pack" maxlength="20" placeholder="e.g. 10 tablets" required></label>
+          </fieldset>
           <label id="custom-service-label" hidden>Other service name<input name="service_name" maxlength="100" placeholder="Enter one service" disabled></label>
           <label>Availability<select name="availability"><option value="available">Available</option><option value="unavailable">Unavailable</option></select></label>
           <label>Fee for this service (₦)<input name="quote" type="number" min="0" max="100000000" step="1" required></label>
