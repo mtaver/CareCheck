@@ -35,6 +35,56 @@ const cacheKey = 'carecheck-facility-directory-v1';
 const naira = new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', maximumFractionDigits: 0 });
 const time = new Intl.DateTimeFormat('en-NG', { timeZone: 'Africa/Lagos', hour: 'numeric', minute: '2-digit' });
 let listings = [];
+const fares = new Map();
+const comparison = document.createElement('select');
+const comparisonLabel = document.createElement('label');
+comparisonLabel.append('Compare one service', comparison);
+comparisonLabel.style.gridColumn = '1 / -1';
+form.append(comparisonLabel);
+const comparisonStatus = document.createElement('p');
+comparisonStatus.hidden = true;
+cards.before(comparisonStatus);
+
+function refreshComparison() {
+  const selected = comparison.value;
+  const services = [...new Set(listings.filter((entry) => entry.confirmed_at)
+    .map((entry) => entry.service))].sort();
+  comparison.replaceChildren(new Option('Choose a service to compare', ''),
+    ...services.map((service) => new Option(service, service)));
+  if (services.includes(selected)) comparison.value = selected;
+  comparison.disabled = !services.length;
+  query.disabled = Boolean(comparison.value);
+}
+
+function addTripEstimate(card, facility) {
+  const label = document.createElement('label');
+  label.textContent = 'Estimated return fare (₦)';
+  const fare = document.createElement('input');
+  fare.type = 'number';
+  fare.inputMode = 'numeric';
+  fare.min = '0';
+  fare.max = '100000000';
+  fare.step = '1';
+  fare.placeholder = 'Enter fare';
+  const key = JSON.stringify([facility.id ?? facility.name, facility.community, facility.address]);
+  fare.value = fares.get(key) ?? '';
+  label.append(fare);
+  const estimate = document.createElement('output');
+  estimate.setAttribute('aria-live', 'polite');
+  function updateEstimate() {
+    const amount = fare.valueAsNumber;
+    const hasFare = fare.value !== '' && fare.validity.valid && Number.isFinite(amount);
+    estimate.textContent = Number.isFinite(facility.price) && hasFare
+      ? 'Estimated total using listed fee: ' + naira.format(facility.price + amount)
+      : 'Estimated total: ' + (Number.isFinite(facility.price) ? 'Enter a valid return fare' : 'Ask facility for price');
+  }
+  fare.addEventListener('input', () => {
+    fares.set(key, fare.value);
+    updateEstimate();
+  });
+  card.querySelector('.actions').before(label, estimate);
+  updateEstimate();
+}
 
 function readSavedListings() {
   try {
@@ -75,7 +125,7 @@ function displayConfirmation(card, facility) {
 async function refreshListings() {
   if (!configured) return;
   try {
-    const records = await request('/rest/v1/facilities?approved=eq.true&select=name,community,address,phone,kind,services(service,status,price,cutoff,confirmed_at)');
+    const records = await request('/rest/v1/facilities?approved=eq.true&select=id,name,community,address,phone,kind,services(service,status,price,cutoff,confirmed_at)');
     listings = records.flatMap(({ services, phone, ...facility }) => {
       const contact = { contact: 'tel:' + phone, contactLabel: 'Call facility enquiries' };
       return (services.length ? services : [{ service: facility.kind }])
@@ -87,6 +137,7 @@ async function refreshListings() {
       // The current online search still works when browser storage is unavailable.
     }
     refreshCommunities();
+    refreshComparison();
     renderFacilities();
   } catch {
     connection.textContent = 'Live updates unavailable · showing saved directory';
@@ -94,19 +145,29 @@ async function refreshListings() {
 }
 
 function renderFacilities() {
+  const service = comparison.value;
   const words = query.value.trim().toLowerCase().split(/\s+/).filter(Boolean);
   const matches = [...directory, ...listings].filter((facility) => {
     const searchable = [facility.name, facility.community, facility.service, facility.searchTerms, facility.kind]
       .join(' ').toLowerCase();
     const matchesCommunity = community.selectedIndex === 0 || facility.community === community.value;
-    return matchesCommunity && words.every((word) => searchable.includes(word));
+    return matchesCommunity && (service
+      ? Boolean(facility.confirmed_at) && facility.service === service
+      : words.every((word) => searchable.includes(word)));
   });
 
+  comparisonStatus.hidden = !service;
+  comparisonStatus.textContent = service
+    ? (matches.length === 1 ? 'One facility has listed this service in the selected area. ' : '') +
+      'Add the fare for the return trip. Confirm current fees and availability before travelling.'
+    : '';
+  cards.style.gridTemplateColumns = service ? 'repeat(auto-fit, minmax(min(100%, 19rem), 1fr))' : '';
   count.textContent = `${matches.length} ${matches.length === 1 ? 'result' : 'results'}`;
   cards.replaceChildren();
   if (!matches.length) {
     const message = document.createElement('p');
-    message.textContent = 'No matching listings. Try “laboratory” or choose all listed communities.';
+    message.textContent = service ? 'No listings for this service in the selected community.' :
+      'No matching listings. Try “laboratory” or choose all listed communities.';
     cards.append(message);
     return;
   }
@@ -130,6 +191,7 @@ function renderFacilities() {
     if (facility.source) source.href = facility.source;
     else source.remove();
     displayConfirmation(card, facility);
+    if (service) addTripEstimate(card, facility);
     cards.append(card);
   }
 }
@@ -142,6 +204,11 @@ form.addEventListener('submit', (event) => {
   event.preventDefault();
   renderFacilities();
 });
+comparison.addEventListener('change', () => {
+  query.disabled = Boolean(comparison.value);
+  renderFacilities();
+});
+community.addEventListener('change', renderFacilities);
 window.addEventListener('online', () => {
   updateConnection();
   refreshListings();
@@ -149,10 +216,13 @@ window.addEventListener('online', () => {
 window.addEventListener('offline', updateConnection);
 listings = readSavedListings();
 refreshCommunities();
+refreshComparison();
 updateConnection();
 renderFacilities();
 refreshListings();
-setInterval(renderFacilities, 60000);
+setInterval(() => {
+  if (!cards.contains(document.activeElement)) renderFacilities();
+}, 60000);
 
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('./sw.js').catch((error) => {
