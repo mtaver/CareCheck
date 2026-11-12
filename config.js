@@ -1,3 +1,3 @@
-// Set these to the project's public URL and publishable key to enable live updates.
-export const projectUrl = '';
-export const publishableKey = '';
+// Public client configuration. Database access is governed by row-level security.
+export const projectUrl = 'https://ofruhlddwtovmrklfstt.supabase.co';
+export const publishableKey = 'sb_publishable_gYzNHdyZVTAA18CfdpN9mQ_g7Qmqo2Q';
