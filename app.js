@@ -47,9 +47,9 @@ cards.before(comparisonStatus);
 
 function refreshComparison() {
   const selected = comparison.value;
-  const services = [...new Set(listings.filter((entry) => entry.confirmed_at)
+  const services = [...new Set(listings.filter((entry) => entry.confirmed_at && !/[,;\n]/.test(entry.service))
     .map((entry) => entry.service))].sort();
-  comparison.replaceChildren(new Option('Choose a service to compare', ''),
+  comparison.replaceChildren(new Option(services.length ? 'Choose a service to compare' : 'No individually listed services yet', ''),
     ...services.map((service) => new Option(service, service)));
   if (services.includes(selected)) comparison.value = selected;
   comparison.disabled = !services.length;
