@@ -1,4 +1,4 @@
-const cacheName = 'carecheck-directory-v3';
+const cacheName = 'carecheck-directory-v4';
 const assets = ['./', './index.html', './styles.css', './app.js', './api.js', './config.js'];
 
 self.addEventListener('install', (event) => {
