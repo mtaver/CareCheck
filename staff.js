@@ -18,22 +18,18 @@ const serviceOptions = {
 const facilitySelect = update.elements.facility;
 const feeInput = update.elements.quote;
 const customInput = update.elements.service_name;
-const customLabel = customInput.closest('label');
-const serviceSelect = document.createElement('select');
-serviceSelect.required = true;
-const serviceLabel = document.createElement('label');
-serviceLabel.append('Service', serviceSelect);
-customLabel.before(serviceLabel);
-customLabel.firstChild.textContent = 'Other service name';
-customInput.placeholder = 'Enter one service';
-feeInput.closest('label').firstChild.textContent = 'Fee for this service (₦)';
-feeInput.required = true;
+const customLabel = document.querySelector('#custom-service-label');
+const serviceSelect = document.querySelector('#service-choice');
 
 function refreshServiceOptions() {
   const facility = facilities.find((row) => row.id === facilitySelect.value);
-  const names = serviceOptions[facility?.kind] ?? [];
-  serviceSelect.replaceChildren(new Option('Select one service', ''),
-    ...names.map((name) => new Option(name, name)), new Option('Other service', 'other'));
+  const kind = Object.keys(serviceOptions).find((key) =>
+    key.toLowerCase() === String(facility?.kind ?? '').trim().toLowerCase());
+  const names = kind ? serviceOptions[kind] : [...new Set(Object.values(serviceOptions).flat())];
+  serviceSelect.disabled = !facility;
+  serviceSelect.replaceChildren(new Option(facility ? 'Select one service' : 'Register a facility first', ''));
+  if (facility) serviceSelect.append(...names.map((name) => new Option(name, name)), new Option('Other service', 'other'));
+  serviceSelect.value = '';
   clearServiceDetails();
 }
 
@@ -61,9 +57,12 @@ async function loadFacilities() {
   const rows = await request('/rest/v1/facilities?select=id,name,approved,kind&owner_id=eq.' + session.user.id, {
     token: session.access_token,
   });
+  const selected = facilitySelect.value;
   facilities = rows;
-  update.elements.facility.replaceChildren(...rows.map((row) =>
+  facilitySelect.replaceChildren(...rows.map((row) =>
     new Option(row.name + (row.approved ? '' : ' (pending review)'), row.id)));
+  if (!rows.length) facilitySelect.append(new Option('No registered facilities', ''));
+  facilitySelect.value = rows.some((row) => row.id === selected) ? selected : rows[0]?.id ?? '';
   update.querySelector('button').disabled = !rows.length;
   refreshServiceOptions();
 }
@@ -112,6 +111,9 @@ handle(register, async (values) => {
 });
 
 handle(update, async (values) => {
+  if (!facilities.some((row) => row.id === values.facility)) {
+    throw new Error('Select one of your registered facilities first.');
+  }
   const name = serviceSelect.value === 'other' ? (values.service_name ?? '').trim() : serviceSelect.value;
   if (name.length < 2 || /[,;\n]/.test(name)) {
     throw new Error('Enter one service at a time, with its own fee.');

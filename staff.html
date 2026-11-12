@@ -13,7 +13,7 @@
       location.replace(resetPage.href);
     }
   </script>
-  <script type="module" src="./staff.js"></script>
+  <script type="module" src="./staff.js?v=service-selector-1"></script>
 </head>
 <body>
   <header class="bar"><div class="wrap"><a class="brand" href="./">Care<span>Check</span></a><div class="actions"><a href="./">Find nearby care</a><a href="./admin.html">Admin portal</a></div></div></header>
@@ -41,9 +41,10 @@
         <form id="update">
           <h2>Confirm a service</h2>
           <label>Facility<select name="facility" required></select></label>
-          <label>Service name<input name="service_name" required maxlength="100" placeholder="e.g. Full blood count"></label>
+          <label>Service<select id="service-choice" required disabled><option value="">Register a facility first</option></select></label>
+          <label id="custom-service-label" hidden>Other service name<input name="service_name" maxlength="100" placeholder="Enter one service" disabled></label>
           <label>Availability<select name="availability"><option value="available">Available</option><option value="unavailable">Unavailable</option></select></label>
-          <label>Price in naira<input name="quote" type="number" min="0" max="100000000" step="1"></label>
+          <label>Fee for this service (₦)<input name="quote" type="number" min="0" max="100000000" step="1" required></label>
           <label>Arrival cutoff (WAT)<input name="arrival_cutoff" type="time"></label>
           <button>Save confirmation</button>
         </form>
