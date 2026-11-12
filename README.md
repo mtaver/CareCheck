@@ -23,3 +23,9 @@ The Benue pilot is planned. The facility portal requires the Supabase setup belo
 To publish via GitHub Pages, select **Settings → Pages → Deploy from a branch → main → / (root)**. The public directory works with the default configuration while facility registration and live updates require Supabase.
 
 When releasing changes to cached frontend files, increment the cache version in `sw.js`.
+
+## Enable the admin portal
+
+Run [supabase/admin.sql](supabase/admin.sql) once in the existing CareCheck project's SQL Editor. In Authentication → Users, copy the user UUID of the existing account that will be the main administrator. Run the commented bootstrap statement at the end of the migration with that UUID.
+
+Open [Admin portal](https://mtaver.github.io/CareCheck/admin.html) and sign in with that CareCheck account. The main administrator can grant or revoke administrator access for existing accounts. Administrators can approve or remove facility listings and suspend or restore staff accounts. Removal hides the listing from public search while preserving the record. Suspension blocks CareCheck submissions and updates, and hides the account's listings. The moderation log is stored in the private database schema.

@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin portal | CareCheck</title>
+  <link rel="stylesheet" href="./styles.css">
+  <script type="module" src="./admin.js"></script>
+</head>
+<body>
+  <header class="bar"><div class="wrap"><a class="brand" href="./">Care<span>Check</span></a><a href="./staff.html">Facility portal</a></div></header>
+  <main class="wrap">
+    <section class="intro">
+      <h1>Admin portal</h1>
+      <p id="status" role="status" aria-live="polite">Sign in with your CareCheck admin account.</p>
+      <form id="admin-login">
+        <label>Email<input name="email" type="email" autocomplete="username" required></label>
+        <label>Password<input name="password" type="password" autocomplete="current-password" required></label>
+        <button>Sign in</button>
+      </form>
+      <div id="admin-workspace" hidden>
+        <div class="actions"><button id="admin-logout" type="button">Sign out</button><button id="admin-refresh" type="button">Refresh submissions</button></div>
+        <section class="results" aria-labelledby="pending-title">
+          <h2 id="pending-title">Pending submissions</h2>
+          <div id="pending-list"></div>
+        </section>
+        <section class="results" aria-labelledby="reviewed-title">
+          <h2 id="reviewed-title">Reviewed facilities</h2>
+          <div id="reviewed-list"></div>
+        </section>
+        <section class="results" aria-labelledby="account-title">
+          <h2 id="account-title">Account moderation</h2>
+          <p>Suspending a staff account hides its listings and blocks new submissions and service updates. Restored accounts can submit again. Their previous listings require approval.</p>
+          <form id="account-form">
+            <label>Account email<input name="email" type="email" required></label>
+            <label>Reason for suspension<input name="reason" maxlength="500"></label>
+            <label>Action<select name="action"><option value="suspend">Suspend account</option><option value="restore">Restore account</option></select></label>
+            <button>Apply account action</button>
+          </form>
+        </section>
+        <section id="admin-management" class="results" aria-labelledby="admin-title" hidden>
+          <h2 id="admin-title">Manage administrators</h2>
+          <ul id="admin-list"></ul>
+          <form id="admin-form">
+            <label>Registered account email<input name="email" type="email" required></label>
+            <label>Action<select name="action"><option value="grant_admin">Make administrator</option><option value="revoke_admin">Remove admin access</option></select></label>
+            <button>Apply admin action</button>
+          </form>
+        </section>
+      </div>
+    </section>
+  </main>
+  <style>
+    #admin-workspace section { margin-top: 2rem; }
+    #admin-workspace .card { margin-top: .75rem; }
+    #admin-workspace form { grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); }
+    #admin-workspace .card form { padding: 0; border: 0; }
+  </style>
+</body>
+</html>
