@@ -1,0 +1,41 @@
+:root {
+  color-scheme: light;
+  font-family: Inter, system-ui, sans-serif;
+  color: #172b24;
+  background: #f3f8f5;
+  line-height: 1.55;
+}
+* { box-sizing: border-box; }
+body { margin: 0; }
+.wrap { max-width: 70rem; margin: auto; padding-inline: clamp(1rem, 4vw, 3rem); }
+.bar { background: #fff; border-bottom: 1px solid #dae8df; }
+.bar .wrap, .heading, .card-top { display: flex; justify-content: space-between; align-items: baseline; gap: .8rem; flex-wrap: wrap; }
+.bar .wrap { min-height: 4.5rem; align-items: center; }
+.brand { color: #19382d; font-weight: 800; font-size: 1.4rem; text-decoration: none; }
+.brand span { color: #0c7155; }
+.intro { padding-block: clamp(2.5rem, 7vw, 5rem) 2rem; }
+h1, h2, h3, p, dl, dd { margin: 0; }
+h1 { font-size: clamp(2.55rem, 7vw, 5rem); line-height: 1; letter-spacing: -.065em; }
+.intro p { margin-top: 1rem; max-width: 33rem; color: #486155; font-size: 1.12rem; }
+form { margin-top: 2rem; padding: 1.2rem; display: grid; grid-template-columns: 1fr 1.6fr auto; gap: 1rem; align-items: end; background: #fff; border: 1px solid #dae8df; border-radius: 1rem; }
+label { display: grid; gap: .3rem; font-weight: 650; }
+input, select, button { font: inherit; min-height: 3rem; border-radius: .55rem; padding: .55rem .75rem; }
+input, select { min-width: 0; width: 100%; border: 1px solid #879f91; background: #fff; color: inherit; }
+button { background: #075e46; color: #fff; border: 0; font-weight: 700; cursor: pointer; }
+button:hover { background: #084c3b; }
+:focus-visible { outline: 3px solid #197b61; outline-offset: 3px; }
+.heading { margin-bottom: .8rem; }
+.heading p, .address, dt, footer, #connection { color: #486155; }
+#cards { display: grid; gap: .8rem; }
+.card { background: #fff; border: 1px solid #dae8df; border-radius: 1rem; padding: clamp(1rem, 3vw, 1.5rem); }
+.badge { color: #6a4410; background: #fff3d9; border-radius: .4rem; padding: .2rem .55rem; font-size: .86rem; font-weight: 650; }
+.service { margin-top: .8rem; font-weight: 650; }
+dl { display: flex; flex-wrap: wrap; gap: .55rem 2rem; padding-block: .65rem; }
+dt { font-size: .85rem; }
+dd { font-weight: 600; }
+.actions { display: flex; gap: .25rem 1.3rem; flex-wrap: wrap; }
+.actions a { color: #075e46; font-weight: 650; padding-block: .6rem; }
+footer.wrap { padding-block: 1.8rem; }
+@media (max-width: 42rem) {
+  form { grid-template-columns: 1fr; }
+}
