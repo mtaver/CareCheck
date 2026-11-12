@@ -119,6 +119,13 @@ function renderFacilities() {
     const contact = card.querySelector('.contact');
     contact.href = facility.contact;
     contact.textContent = facility.contactLabel;
+    if (facility.contact.startsWith('tel:')) {
+      const phone = facility.contact.slice(4);
+      const dialNumber = /^0[0-9]{10}$/.test(phone) ? '+234' + phone.slice(1) : phone;
+      contact.href = 'tel:' + dialNumber;
+      contact.textContent = 'Call ' + phone;
+      contact.setAttribute('aria-label', 'Call ' + facility.name + ' enquiries at ' + phone);
+    }
     const source = card.querySelector('.source');
     if (facility.source) source.href = facility.source;
     else source.remove();
