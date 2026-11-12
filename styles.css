@@ -39,3 +39,9 @@ footer.wrap { padding-block: 1.8rem; }
 @media (max-width: 42rem) {
   form { grid-template-columns: 1fr; }
 }
+[hidden] { display: none !important; }
+.bar a { color: #075e46; }
+#workspace { margin-top: 1rem; }
+#workspace form { grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); }
+#workspace form h2 { grid-column: 1 / -1; }
+button:disabled { opacity: .5; cursor: default; }

@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Facility portal | CareCheck</title>
+  <link rel="stylesheet" href="./styles.css">
+  <script type="module" src="./staff.js"></script>
+</head>
+<body>
+  <header class="bar"><div class="wrap"><a class="brand" href="./">Care<span>Check</span></a><a href="./">Find nearby care</a></div></header>
+  <main class="wrap">
+    <section class="intro">
+      <h1>Facility portal</h1>
+      <p id="notice" role="status"></p>
+      <form id="login" hidden>
+        <label>Email<input name="email" type="email" autocomplete="email" required></label>
+        <label>Password<input name="password" type="password" autocomplete="current-password" minlength="8" required></label>
+        <div class="actions"><button value="signin">Sign in</button><button value="signup">Create account</button></div>
+      </form>
+      <div id="workspace" hidden>
+        <button id="logout" type="button">Sign out</button>
+        <form id="register">
+          <h2>Register a facility</h2>
+          <label>Facility name<input name="name" required maxlength="120"></label>
+          <label>Facility type<select name="kind"><option>Hospital</option><option>Clinic</option><option>Laboratory</option><option>Pharmacy</option></select></label>
+          <label>Community<input name="community" required maxlength="80"></label>
+          <label>Address or landmark<input name="address" required maxlength="180"></label>
+          <label>Public enquiry phone<input name="phone" type="tel" required pattern="[+]?[0-9]{7,15}"></label>
+          <button>Submit for review</button>
+        </form>
+        <form id="update">
+          <h2>Confirm a service</h2>
+          <label>Facility<select name="facility" required></select></label>
+          <label>Service name<input name="service_name" required maxlength="100" placeholder="e.g. Full blood count"></label>
+          <label>Availability<select name="availability"><option value="available">Available</option><option value="unavailable">Unavailable</option></select></label>
+          <label>Price in naira<input name="quote" type="number" min="0" max="100000000" step="1"></label>
+          <label>Arrival cutoff (WAT)<input name="arrival_cutoff" type="time"></label>
+          <button>Save confirmation</button>
+        </form>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

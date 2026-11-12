@@ -1,4 +1,6 @@
-const facilities = [
+import { configured, request } from './api.js';
+
+const directory = [
   {
     name: 'Benue State University Teaching Hospital',
     community: 'Makurdi',
@@ -29,10 +31,72 @@ const count = document.querySelector('#count');
 const template = document.querySelector('#facility-card');
 const connection = document.querySelector('#connection');
 
+const cacheKey = 'carecheck-facility-directory-v1';
+const naira = new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', maximumFractionDigits: 0 });
+const time = new Intl.DateTimeFormat('en-NG', { timeZone: 'Africa/Lagos', hour: 'numeric', minute: '2-digit' });
+let listings = [];
+
+function readSavedListings() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(cacheKey));
+    return Array.isArray(saved) ? saved : [];
+  } catch {
+    return [];
+  }
+}
+
+function refreshCommunities() {
+  const selected = community.value;
+  const names = [...new Set([...directory, ...listings].map((facility) => facility.community))].sort();
+  community.replaceChildren(new Option('All listed communities', ''), ...names.map((name) => new Option(name, name)));
+  if (names.includes(selected)) community.value = selected;
+}
+
+function displayConfirmation(card, facility) {
+  if (!facility.confirmed_at) return;
+  const confirmed = new Date(facility.confirmed_at);
+  const now = new Date();
+  const localDay = (date) => new Date(date.getTime() + 3600000).toISOString().slice(0, 10);
+  const today = localDay(now);
+  const cutoff = facility.cutoff && new Date(today + 'T' + facility.cutoff + '+01:00');
+  const current = confirmed <= now && localDay(confirmed) === today && (!cutoff || cutoff > now);
+  card.querySelector('.badge').textContent = current
+    ? (facility.status === 'available' ? 'Confirmed today' : 'Unavailable today')
+    : 'Call to confirm';
+  card.querySelector('.confirmed').textContent = 'Last confirmed ' + new Intl.DateTimeFormat('en-NG', {
+    timeZone: 'Africa/Lagos', dateStyle: 'medium', timeStyle: 'short',
+  }).format(confirmed) + ' WAT';
+  if (facility.price !== null) {
+    card.querySelector('.price').textContent = naira.format(facility.price) + (current ? ' quoted' : ' last quoted');
+  }
+  if (current && cutoff) card.querySelector('.cutoff').textContent = time.format(cutoff) + ' WAT';
+}
+
+async function refreshListings() {
+  if (!configured) return;
+  try {
+    const records = await request('/rest/v1/facilities?approved=eq.true&select=name,community,address,phone,kind,services(service,status,price,cutoff,confirmed_at)');
+    listings = records.flatMap(({ services, phone, ...facility }) => {
+      const contact = { contact: 'tel:' + phone, contactLabel: 'Call facility enquiries' };
+      return (services.length ? services : [{ service: facility.kind }])
+        .map((service) => ({ ...facility, ...service, ...contact }));
+    });
+    try {
+      localStorage.setItem(cacheKey, JSON.stringify(listings));
+    } catch {
+      // The current online search still works when browser storage is unavailable.
+    }
+    refreshCommunities();
+    renderFacilities();
+  } catch {
+    connection.textContent = 'Live updates unavailable · showing saved directory';
+  }
+}
+
 function renderFacilities() {
   const words = query.value.trim().toLowerCase().split(/\s+/).filter(Boolean);
-  const matches = facilities.filter((facility) => {
-    const searchable = [facility.name, facility.community, facility.service, facility.searchTerms]
+  const matches = [...directory, ...listings].filter((facility) => {
+    const searchable = [facility.name, facility.community, facility.service, facility.searchTerms, facility.kind]
       .join(' ').toLowerCase();
     const matchesCommunity = community.selectedIndex === 0 || facility.community === community.value;
     return matchesCommunity && words.every((word) => searchable.includes(word));
@@ -55,7 +119,10 @@ function renderFacilities() {
     const contact = card.querySelector('.contact');
     contact.href = facility.contact;
     contact.textContent = facility.contactLabel;
-    card.querySelector('.source').href = facility.source;
+    const source = card.querySelector('.source');
+    if (facility.source) source.href = facility.source;
+    else source.remove();
+    displayConfirmation(card, facility);
     cards.append(card);
   }
 }
@@ -68,10 +135,17 @@ form.addEventListener('submit', (event) => {
   event.preventDefault();
   renderFacilities();
 });
-window.addEventListener('online', updateConnection);
+window.addEventListener('online', () => {
+  updateConnection();
+  refreshListings();
+});
 window.addEventListener('offline', updateConnection);
+listings = readSavedListings();
+refreshCommunities();
 updateConnection();
 renderFacilities();
+refreshListings();
+setInterval(renderFacilities, 60000);
 
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('./sw.js').catch((error) => {

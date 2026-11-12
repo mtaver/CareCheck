@@ -1,5 +1,5 @@
-const cacheName = 'carecheck-directory-v1';
-const assets = ['./', './index.html', './styles.css', './app.js'];
+const cacheName = 'carecheck-directory-v2';
+const assets = ['./', './index.html', './styles.css', './app.js', './api.js', './config.js'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(cacheName).then((cache) => cache.addAll(assets)));

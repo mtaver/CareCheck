@@ -10,4 +10,16 @@ Serve the repository from a local HTTP server, for example `python -m http.serve
 
 Once the service worker has installed, reload with the network offline to use the saved directory. Phone calls still require voice service. The current version stores directory entries in the app bundle and does not collect patient information.
 
-Facility sign-in, staff-confirmed pricing and availability, and the Benue pilot are planned next.
+The Benue pilot is planned. The facility portal requires the Supabase setup below.
+
+## Enable the facility portal
+
+1. Create or select a Supabase project. Run `supabase/schema.sql` once in its SQL editor.
+2. Enable email/password authentication. Set the Site URL to your deployed app and use email confirmation.
+3. Fill in `config.js` with the project URL and its **public publishable key**. Keep privileged keys out of the repository.
+4. Staff open **Facility portal**, create an account, and submit their facility. Verify the facility and the staff member’s authority before approving it in Supabase. Set `approved` to true on that facility row. Only approved listings are publicly searchable.
+5. Staff can confirm individual services, enter quoted prices and arrival cutoffs in WAT. Confirmations expire at the cutoff or at the end of the WAT calendar day.
+
+To publish via GitHub Pages, select **Settings → Pages → Deploy from a branch → main → / (root)**. The public directory works with the default configuration while facility registration and live updates require Supabase.
+
+When releasing changes to cached frontend files, increment the cache version in `sw.js`.
