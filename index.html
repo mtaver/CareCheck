@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f3f8f5">
+  <title>Find Nearby Care | CareCheck</title>
+  <link rel="stylesheet" href="./styles.css">
+  <script type="module" src="./app.js"></script>
+</head>
+<body>
+  <header class="bar"><div class="wrap"><a class="brand" href="./">Care<span>Check</span></a><span id="connection" role="status"></span></div></header>
+  <main class="wrap">
+    <section class="intro" aria-labelledby="title">
+      <h1 id="title">Find nearby care</h1>
+      <p>Check where a service is offered, what it costs, and when to arrive before you travel.</p>
+      <form id="search">
+        <label>Community<select id="community"><option>All listed communities</option><option>Makurdi</option><option>Apir</option></select></label>
+        <label>Service or facility<input id="query" type="search" maxlength="100" placeholder="e.g. laboratory services"></label>
+        <button type="submit">Find care</button>
+      </form>
+    </section>
+    <section class="results" aria-labelledby="results-title">
+      <div class="heading"><h2 id="results-title">Facilities</h2><p id="count" role="status"></p></div>
+      <div id="cards"></div>
+    </section>
+    <noscript>Enable JavaScript to search the facility directory.</noscript>
+  </main>
+  <footer class="wrap">CareCheck · Benue State, Nigeria</footer>
+  <template id="facility-card">
+    <article class="card">
+      <div class="card-top"><div><h3></h3><p class="address"></p></div><span class="badge">Confirm with facility</span></div>
+      <p class="service"></p>
+      <dl><div><dt>Price</dt><dd>Ask facility for price</dd></div><div><dt>Arrival cutoff</dt><dd>Ask facility when to arrive</dd></div></dl>
+      <div class="actions"><a class="contact"></a><a class="source">Facility website</a></div>
+    </article>
+  </template>
+</body>
+</html>
