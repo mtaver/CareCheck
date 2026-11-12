@@ -7,6 +7,11 @@ const register = document.querySelector('#register');
 const update = document.querySelector('#update');
 let session;
 
+const confirmationStatus = document.createElement('p');
+confirmationStatus.setAttribute('role', 'status');
+confirmationStatus.style.gridColumn = '1 / -1';
+update.append(confirmationStatus);
+
 async function loadFacilities() {
   const rows = await request('/rest/v1/facilities?select=id,name,approved&owner_id=eq.' + session.user.id, {
     token: session.access_token,
@@ -16,15 +21,16 @@ async function loadFacilities() {
   update.querySelector('button').disabled = !rows.length;
 }
 
-function handle(form, action) {
+function handle(form, action, status = notice) {
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
     if (form.dataset.busy) return;
     form.dataset.busy = 'true';
+    if (form === update) status.textContent = 'Saving confirmation…';
     try {
       await action(Object.fromEntries(new FormData(form)), event.submitter);
     } catch (error) {
-      notice.textContent = error.message;
+      status.textContent = form === update ? 'Could not save confirmation. ' + error.message : error.message;
     } finally {
       delete form.dataset.busy;
     }
@@ -68,11 +74,16 @@ handle(update, async (values) => {
       arrival_cutoff: available ? values.arrival_cutoff || null : null,
     },
   });
-  notice.textContent = 'Service confirmation saved.';
-});
+  const facility = update.elements.facility.selectedOptions[0];
+  const pending = facility?.textContent.endsWith(' (pending review)');
+  confirmationStatus.textContent = pending
+    ? 'Service confirmation saved. It will appear in public search after the facility is approved.'
+    : 'Service confirmation saved.';
+}, confirmationStatus);
 
 document.querySelector('#logout').addEventListener('click', () => {
   session = undefined;
+  confirmationStatus.textContent = '';
   workspace.hidden = true;
   login.hidden = false;
   notice.textContent = 'Signed out.';
