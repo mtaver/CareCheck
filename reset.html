@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <title>Reset password | CareCheck</title>
+  <link rel="stylesheet" href="./styles.css">
+  <script type="module" src="./reset.js"></script>
+</head>
+<body>
+  <header class="bar"><div class="wrap"><a class="brand" href="./">Care<span>Check</span></a></div></header>
+  <main class="wrap">
+    <section class="intro">
+      <h1 id="reset-title">Reset your password</h1>
+      <p id="reset-status" role="status">Enter your CareCheck email to receive a reset link.</p>
+      <form id="request-reset" hidden>
+        <label>CareCheck email<input name="email" type="email" autocomplete="email" required></label>
+        <button>Send reset link</button>
+      </form>
+      <form id="choose-password" hidden>
+        <label>New password<input name="password" type="password" autocomplete="new-password" minlength="8" required></label>
+        <label>Confirm new password<input name="confirmation" type="password" autocomplete="new-password" minlength="8" required></label>
+        <button>Save new password</button>
+      </form>
+      <p><a href="./staff.html">Facility sign-in</a> · <a href="./admin.html">Admin sign-in</a></p>
+    </section>
+  </main>
+</body>
+</html>
