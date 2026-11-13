@@ -13,7 +13,7 @@
       location.replace(resetPage.href);
     }
   </script>
-  <script type="module" src="./staff.js?v=medicine-picker-1"></script>
+  <script type="module" src="./staff.js?v=facility-record-labels-1"></script>
 </head>
 <body>
   <header class="bar"><div class="wrap"><a class="brand" href="./">Care<span>Check</span></a><div class="actions"><a href="./">Find nearby care</a><a href="./admin.html">Admin portal</a></div></div></header>
@@ -40,6 +40,7 @@
         </form>
         <form id="update">
           <h2>Confirm a service</h2>
+          <p style="grid-column:1 / -1">Select a facility registered to this account. The registration form above is for adding a new facility.</p>
           <label>Facility<select name="facility" required></select></label>
           <label>Service<select id="service-choice" required disabled><option value="">Register a facility first</option></select></label>
           <fieldset id="medicine-fields" hidden disabled style="grid-column:1 / -1; display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%, 12rem),1fr)); gap:.75rem">

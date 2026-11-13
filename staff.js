@@ -92,13 +92,18 @@ confirmationStatus.style.gridColumn = '1 / -1';
 update.append(confirmationStatus);
 
 async function loadFacilities() {
-  const rows = await request('/rest/v1/facilities?select=id,name,approved,kind&owner_id=eq.' + session.user.id, {
+  const rows = await request('/rest/v1/facilities?select=id,name,approved,kind,community&owner_id=eq.' + session.user.id, {
     token: session.access_token,
   });
   const selected = facilitySelect.value;
   facilities = rows;
-  facilitySelect.replaceChildren(...rows.map((row) =>
-    new Option(row.name + (row.approved ? '' : ' (pending review)'), row.id)));
+  const labels = rows.map((row) =>
+    [row.name, row.kind, row.community, row.approved ? 'Approved' : 'Awaiting approval or removed'].join(' · '));
+  facilitySelect.replaceChildren(...rows.map((row, index) => {
+    const label = labels[index];
+    const duplicate = labels.indexOf(label) !== labels.lastIndexOf(label);
+    return new Option(duplicate ? label + ' · ' + row.id.slice(0, 8) : label, row.id);
+  }));
   if (!rows.length) facilitySelect.append(new Option('No registered facilities', ''));
   facilitySelect.value = rows.some((row) => row.id === selected) ? selected : rows[0]?.id ?? '';
   update.querySelector('button').disabled = !rows.length;
